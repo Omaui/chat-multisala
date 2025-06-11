@@ -9,16 +9,23 @@ const io = socketIo(server)
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', (req,res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'))
+app.get('/chat/:room', (req,res) => {
+    const room = req.params.room
+    res.sendFile(path.join(__dirname, 'public', `${room}.html`))
 })
+
 
 io.on('connection', (socket) =>{
     console.log('Novo usuário conectado!')
 
+    socket.on('join room',(room)=>{
+        socket.join(room)
+        console.log(`usuario entrou na sala:${room}`)
+    })
+
     socket.on('chat message', (data) =>{
         console.log(data)
-        io.emit('chat message', {user: data.user, message: data.message, time: data.time});
+        io.to(data.room).emit('chat message', data);
         
     })
 
